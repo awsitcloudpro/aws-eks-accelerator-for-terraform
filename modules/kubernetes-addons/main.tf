@@ -163,6 +163,18 @@ module "prometheus" {
   tags                                 = var.tags
 }
 
+module "kube-prometheus-stack" {
+  count          = var.enable_kube_prometheus_stack ? 1 : 0
+  source         = "./kube-prometheus-stack"
+  eks_cluster_id = var.eks_cluster_id
+  helm_config    = var.kube_prometheus_stack_helm_config
+  #AWS Managed Prometheus Workspace
+  enable_amazon_prometheus             = var.enable_amazon_prometheus
+  amazon_prometheus_workspace_endpoint = var.amazon_prometheus_workspace_endpoint
+  manage_via_gitops                    = var.argocd_manage_add_ons
+  tags                                 = var.tags
+}
+
 module "spark_k8s_operator" {
   count             = var.enable_spark_k8s_operator ? 1 : 0
   source            = "./spark-k8s-operator"

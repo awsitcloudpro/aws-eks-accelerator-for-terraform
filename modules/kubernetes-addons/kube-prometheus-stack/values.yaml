@@ -1,0 +1,43 @@
+## Configuration for alertmanager
+## ref: https://prometheus.io/docs/alerting/alertmanager/
+##
+alertmanager:
+  alertmanagerSpec:
+    nodeSelector:
+      kubernetes.io/os: ${operating_system}
+
+## Manages Prometheus and Alertmanager components
+##
+prometheusOperator:
+  admissionWebhooks:
+    patch:
+      nodeSelector:
+        kubernetes.io/os: ${operating_system}
+  nodeSelector:
+    kubernetes.io/os: ${operating_system}
+
+## Deploy a Prometheus instance
+##
+prometheus:
+  prometheusSpec:
+    ## Interval between consecutive scrapes.
+    ## Defaults to 30s.
+    ## ref: https://github.com/prometheus-operator/prometheus-operator/blob/release-0.44/pkg/prometheus/promcfg.go#L180-L183
+    ##
+    scrapeInterval: 15s
+    nodeSelector:
+      kubernetes.io/os: ${operating_system}
+    resources:
+      requests:
+        memory: 400Mi
+
+grafana:
+  enabled: false
+
+prometheus-node-exporter:
+  nodeSelector:
+    kubernetes.io/os: ${operating_system}
+
+kube-state-metrics:
+  nodeSelector:
+    kubernetes.io/os: ${operating_system}

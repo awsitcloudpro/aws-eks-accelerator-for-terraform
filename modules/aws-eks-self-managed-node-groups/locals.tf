@@ -82,6 +82,7 @@ locals {
       "k8s.io/cluster-autoscaler/enabled"                              = "TRUE"
       "k8s.io/cluster-autoscaler/node-template/label/eks/capacityType" = local.self_managed_node_group["capacity_type"]
       "k8s.io/cluster-autoscaler/node-template/label/eks/nodegroup"    = local.self_managed_node_group["node_group_name"]
+      "os"                                                             = local.self_managed_node_group["launch_template_os"]
       "managed-by"                                                     = "terraform-aws-eks-blueprints"
   })
 }

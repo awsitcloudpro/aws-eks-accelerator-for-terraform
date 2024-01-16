@@ -31,7 +31,7 @@ provider "kubernetes" {
 }
 
 locals {
-  name   = "example1"
+  name   = "example-windows"
   region = var.region
 
   cluster_version = var.kubernetes_version
@@ -133,7 +133,7 @@ locals {
 
   tags = {
     Blueprint  = local.name
-    GithubRepo = "github.com/aws-ia/terraform-aws-eks-blueprints"
+    GithubRepo = "github.com/awsitcloudpro/terraform-aws-eks-blueprints"
   }
 }
 

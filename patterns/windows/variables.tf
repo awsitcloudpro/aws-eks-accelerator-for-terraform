@@ -25,7 +25,7 @@ variable "addons" {
 variable "gitops_addons_org" {
   description = "Git repository org/user contains for addons"
   type        = string
-  default     = "https://github.com/aws-samples"
+  default     = "https://github.com/awsitcloudpro"
 }
 variable "gitops_addons_repo" {
   description = "Git repository contains for addons"
@@ -52,7 +52,7 @@ variable "gitops_addons_path" {
 variable "gitops_workload_org" {
   description = "Git repository org/user contains for workload"
   type        = string
-  default     = "https://github.com/aws-ia"
+  default     = "https://github.com/awsitcloudpro"
 }
 variable "gitops_workload_repo" {
   description = "Git repository contains for workload"
@@ -62,17 +62,17 @@ variable "gitops_workload_repo" {
 variable "gitops_workload_revision" {
   description = "Git repository revision/branch/ref for workload"
   type        = string
-  default     = "main"
+  default     = "example-windows"
 }
 variable "gitops_workload_basepath" {
   description = "Git repository base path for workload"
   type        = string
-  default     = "patterns/gitops/"
+  default     = "patterns/windows/"
 }
 variable "gitops_workload_path" {
   description = "Git repository path for workload"
   type        = string
-  default     = "getting-started-argocd/k8s"
+  default     = "k8s"
 }
 
 variable "enable_gitops_auto_addons" {

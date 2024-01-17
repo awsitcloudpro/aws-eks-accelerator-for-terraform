@@ -26,7 +26,7 @@ locals {
     enable_cluster_autoscaler                    = try(var.addons.enable_cluster_autoscaler, false)
     enable_external_dns                          = try(var.addons.enable_external_dns, false)
     enable_external_secrets                      = try(var.addons.enable_external_secrets, false)
-    enable_aws_load_balancer_controller          = try(var.addons.enable_aws_load_balancer_controller, false)
+    enable_aws_load_balancer_controller          = try(var.addons.enable_aws_load_balancer_controller, true)
     enable_fargate_fluentbit                     = try(var.addons.enable_fargate_fluentbit, false)
     enable_aws_for_fluentbit                     = try(var.addons.enable_aws_for_fluentbit, false)
     enable_aws_node_termination_handler          = try(var.addons.enable_aws_node_termination_handler, false)
@@ -90,10 +90,10 @@ locals {
   )
 
   argocd_app_of_appsets_addons = var.enable_gitops_auto_addons ? {
-    addons = file("${path.module}/bootstrap/addons.yaml")
+    addons = file("${path.module}/argocd-bootstrap/addons.yaml")
   } : {}
   argocd_app_of_appsets_workloads = var.enable_gitops_auto_workloads ? {
-    workloads = file("${path.module}/bootstrap/workloads.yaml")
+    workloads = file("${path.module}/argocd-bootstrap/workloads.yaml")
   } : {}
 
   argocd_apps = merge(local.argocd_app_of_appsets_addons, local.argocd_app_of_appsets_workloads)

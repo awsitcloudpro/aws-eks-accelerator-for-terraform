@@ -35,7 +35,7 @@ variable "gitops_addons_repo" {
 variable "gitops_addons_revision" {
   description = "Git repository revision/branch/ref for addons"
   type        = string
-  default     = "main"
+  default     = "windows"
 }
 variable "gitops_addons_basepath" {
   description = "Git repository base path for addons"

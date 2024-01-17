@@ -63,14 +63,36 @@ module "eks" {
   subnet_ids = module.vpc.private_subnets
 
   eks_managed_node_groups = {
-    initial = {
-      instance_types = ["m5.large"]
+    linux = {
+      instance_types = ["m6i.large"]
 
       min_size     = 1
       max_size     = 3
       desired_size = 2
     }
   }
+
+  # Ensure eks:kube-proxy-windows is added to the aws-auth ConfigMap
+  manage_aws_auth_configmap = true
+  # Defaults suitable for Windows and SSM connect, will also work for Linux
+  self_managed_node_group_defaults = {
+    instance_type                          = "m6i.xlarge"
+    update_launch_template_default_version = true
+    iam_role_additional_policies = {
+      AmazonSSMManagedInstanceCore = "arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore"
+    }
+  }
+  self_managed_node_groups = {
+    windows = {
+      platform = "windows"
+      ami_id   = data.aws_ami.windows2022_core_eks_optimized.id
+
+      min_size     = 1
+      max_size     = 3
+      desired_size = 2
+    }
+  }
+
   # EKS Addons
   cluster_addons = {
     coredns    = {}
@@ -86,7 +108,9 @@ module "eks" {
           # Reference docs https://docs.aws.amazon.com/eks/latest/userguide/cni-increase-ip-addresses.html
           ENABLE_PREFIX_DELEGATION = "true"
           WARM_PREFIX_TARGET       = "1"
-        }
+        },
+        enableWindowsIpam             = "true"
+        enableWindowsPrefixDelegation = "true"
       })
     }
   }

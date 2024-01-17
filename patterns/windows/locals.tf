@@ -1,11 +1,26 @@
 locals {
-  name   = "example-windows"
+  name   = "${var.environment}-example"
   region = var.region
 
   cluster_version = var.kubernetes_version
 
   vpc_cidr = var.vpc_cidr
   azs      = slice(data.aws_availability_zones.available.names, 0, 3)
+  vpc_endpoints = toset([
+    "aps",
+    "aps-workspaces",
+    "autoscaling",
+    "ec2",
+    "ec2messages",
+    "ecr.api",
+    "ecr.dkr",
+    "elasticloadbalancing",
+    "kms",
+    "logs",
+    "ssm",
+    "ssmmessages",
+    "sts",
+  ])
 
   gitops_addons_url      = "${var.gitops_addons_org}/${var.gitops_addons_repo}"
   gitops_addons_basepath = var.gitops_addons_basepath
@@ -23,7 +38,7 @@ locals {
     enable_aws_fsx_csi_driver                    = try(var.addons.enable_aws_fsx_csi_driver, false)
     enable_aws_cloudwatch_metrics                = try(var.addons.enable_aws_cloudwatch_metrics, false)
     enable_aws_privateca_issuer                  = try(var.addons.enable_aws_privateca_issuer, false)
-    enable_cluster_autoscaler                    = try(var.addons.enable_cluster_autoscaler, false)
+    enable_cluster_autoscaler                    = try(var.addons.enable_cluster_autoscaler, true)
     enable_external_dns                          = try(var.addons.enable_external_dns, false)
     enable_external_secrets                      = try(var.addons.enable_external_secrets, false)
     enable_aws_load_balancer_controller          = try(var.addons.enable_aws_load_balancer_controller, true)
@@ -99,8 +114,9 @@ locals {
   argocd_apps = merge(local.argocd_app_of_appsets_addons, local.argocd_app_of_appsets_workloads)
 
 
-  tags = {
-    Blueprint  = local.name
-    GithubRepo = "github.com/awsitcloudpro/terraform-aws-eks-blueprints"
-  }
+  tags = merge({
+    Blueprint   = local.name
+    Environment = var.environment
+    GithubRepo  = "github.com/awsitcloudpro/terraform-aws-eks-blueprints"
+  }, var.tags)
 }

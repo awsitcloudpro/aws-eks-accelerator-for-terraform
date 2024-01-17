@@ -8,6 +8,12 @@ module "gitops_bridge_bootstrap" {
     metadata = local.addons_metadata
     addons   = local.addons
   }
+  argocd = {
+    set = [{
+      name  = "global.nodeSelector.kubernetes\\.io/os"
+      value = "linux"
+    }]
+  }
   apps = local.argocd_apps
 }
 
@@ -58,10 +64,39 @@ module "eks" {
   cluster_version                = local.cluster_version
   cluster_endpoint_public_access = true
 
-
   vpc_id     = module.vpc.vpc_id
   subnet_ids = module.vpc.private_subnets
 
+  kms_key_owners                  = [data.aws_iam_role.admin.arn]
+  kms_key_administrators          = [data.aws_iam_role.admin.arn]
+  kms_key_aliases                 = [local.name]
+  kms_key_description             = "Key used for EKS cluster ${local.name} and related resources"
+  kms_key_deletion_window_in_days = var.key_deletion_window_in_days
+
+  cloudwatch_log_group_retention_in_days = var.log_retention_in_days
+  cloudwatch_log_group_tags              = local.tags
+
+  # Ensure eks:kube-proxy-windows is added to the aws-auth ConfigMap
+  manage_aws_auth_configmap = true
+  # Add additional Admin role(s). 
+  # By default, only the role that executes terraform apply command will have admin access.
+  aws_auth_roles = [
+    {
+      rolearn  = data.aws_iam_role.admin.arn
+      username = "user:{{SessionName}}"
+      groups = [
+        "system:masters",
+      ]
+    }
+  ]
+
+  eks_managed_node_group_defaults = {
+    iam_role_additional_policies = {
+      # Not required, but used in the example to access the nodes to inspect mounted volumes
+      # And for internal PVRE reports (Running SSM for compliance scanning and patching)
+      AmazonSSMManagedInstanceCore = "arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore"
+    }
+  }
   eks_managed_node_groups = {
     linux = {
       instance_types = ["m6i.large"]
@@ -72,8 +107,6 @@ module "eks" {
     }
   }
 
-  # Ensure eks:kube-proxy-windows is added to the aws-auth ConfigMap
-  manage_aws_auth_configmap = true
   # Defaults suitable for Windows and SSM connect, will also work for Linux
   self_managed_node_group_defaults = {
     instance_type                          = "m6i.xlarge"
@@ -122,17 +155,18 @@ module "eks" {
 ################################################################################
 module "vpc" {
   source  = "terraform-aws-modules/vpc/aws"
-  version = "~> 5.0"
+  version = "~> 5.1"
 
   name = local.name
   cidr = local.vpc_cidr
 
   azs             = local.azs
-  private_subnets = [for k, v in local.azs : cidrsubnet(local.vpc_cidr, 4, k)]
-  public_subnets  = [for k, v in local.azs : cidrsubnet(local.vpc_cidr, 8, k + 48)]
+  public_subnets  = [for i, v in local.azs : cidrsubnet(local.vpc_cidr, 8, i)]
+  private_subnets = [for i, v in local.azs : cidrsubnet(local.vpc_cidr, 4, i + 1)]
 
-  enable_nat_gateway = true
-  single_nat_gateway = true
+  enable_nat_gateway     = true
+  single_nat_gateway     = false
+  one_nat_gateway_per_az = true
 
   public_subnet_tags = {
     "kubernetes.io/role/elb" = 1
@@ -141,6 +175,44 @@ module "vpc" {
   private_subnet_tags = {
     "kubernetes.io/role/internal-elb" = 1
   }
+
+  tags = local.tags
+}
+
+module "vpc_endpoints" {
+  source  = "terraform-aws-modules/vpc/aws//modules/vpc-endpoints"
+  version = "~> 5.1"
+
+  vpc_id = module.vpc.vpc_id
+
+  # Security group
+  create_security_group      = true
+  security_group_name_prefix = "${local.name}-vpce-"
+  security_group_description = "VPC endpoint security group"
+  security_group_rules = {
+    ingress_https = {
+      description = "HTTPS from VPC"
+      cidr_blocks = [module.vpc.vpc_cidr_block]
+    }
+  }
+
+  endpoints = merge({
+    s3 = {
+      service         = "s3"
+      service_type    = "Gateway"
+      route_table_ids = module.vpc.private_route_table_ids
+      tags            = local.tags
+    }
+    },
+    { for service in local.vpc_endpoints :
+      replace(service, ".", "_") =>
+      {
+        service             = service
+        subnet_ids          = module.vpc.private_subnets
+        private_dns_enabled = true
+        tags                = local.tags
+      }
+  })
 
   tags = local.tags
 }

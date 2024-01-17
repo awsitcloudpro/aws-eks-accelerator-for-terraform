@@ -3,11 +3,19 @@ variable "vpc_cidr" {
   type        = string
   default     = "10.1.0.0/16"
 }
+
 variable "region" {
   description = "AWS region"
   type        = string
   default     = "us-east-1"
 }
+
+variable "environment" {
+  description = "Environment"
+  type        = string
+  default     = "sandbox"
+}
+
 variable "kubernetes_version" {
   description = "Kubernetes version"
   type        = string
@@ -72,17 +80,35 @@ variable "gitops_workload_basepath" {
 variable "gitops_workload_path" {
   description = "Git repository path for workload"
   type        = string
-  default     = "k8s"
+  default     = "workloads"
 }
 
 variable "enable_gitops_auto_addons" {
   description = "Automatically deploy addons"
   type        = bool
-  default     = false
+  default     = true
 }
 
 variable "enable_gitops_auto_workloads" {
   description = "Automatically deploy addons"
   type        = bool
   default     = false
+}
+
+variable "key_deletion_window_in_days" {
+  description = "KMS key deletion window in days"
+  type        = number
+  default     = 7
+}
+
+variable "log_retention_in_days" {
+  description = "Log retention in days"
+  type        = number
+  default     = 7
+}
+
+variable "tags" {
+  description = "Tags for AWS resources"
+  type        = map(string)
+  default     = {}
 }

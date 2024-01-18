@@ -67,9 +67,8 @@ module "eks" {
   vpc_id     = module.vpc.vpc_id
   subnet_ids = module.vpc.private_subnets
 
-  kms_key_owners                  = [data.aws_iam_role.admin.arn]
+  kms_key_owners                  = ["arn:aws:iam::${local.account_id}:root"]
   kms_key_administrators          = [data.aws_iam_role.admin.arn]
-  kms_key_aliases                 = [local.name]
   kms_key_description             = "Key used for EKS cluster ${local.name} and related resources"
   kms_key_deletion_window_in_days = var.key_deletion_window_in_days
 

@@ -1,6 +1,8 @@
 locals {
   name   = "${var.environment}-example"
   region = var.region
+  # Change account_id if terraform apply is run from a different account
+  account_id = data.aws_caller_identity.current.account_id
 
   cluster_version = var.kubernetes_version
 
@@ -87,7 +89,7 @@ locals {
     {
       aws_cluster_name = module.eks.cluster_name
       aws_region       = local.region
-      aws_account_id   = data.aws_caller_identity.current.account_id
+      aws_account_id   = local.account_id
       aws_vpc_id       = module.vpc.vpc_id
     },
     {

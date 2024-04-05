@@ -21,11 +21,20 @@ variable "kubernetes_version" {
   type        = string
   default     = "1.28"
 }
+
+variable "observability_namespace" {
+  description = "Observability namespace"
+  type        = string
+  default     = "observability"
+}
+
 variable "addons" {
   description = "Kubernetes addons"
   type        = any
   default = {
+    enable_argocd                       = true
     enable_aws_load_balancer_controller = true
+    enable_cluster_autoscaler           = true
     enable_metrics_server               = true
   }
 }
@@ -35,11 +44,13 @@ variable "gitops_addons_org" {
   type        = string
   default     = "https://github.com/awsitcloudpro"
 }
+
 variable "gitops_addons_repo" {
   description = "Git repository contains for addons"
   type        = string
   default     = "eks-blueprints-add-ons"
 }
+
 variable "gitops_addons_revision" {
   description = "Git repository revision/branch/ref for addons"
   type        = string
@@ -50,6 +61,7 @@ variable "gitops_addons_basepath" {
   type        = string
   default     = "argocd/"
 }
+
 variable "gitops_addons_path" {
   description = "Git repository path for addons"
   type        = string
@@ -62,21 +74,25 @@ variable "gitops_workload_org" {
   type        = string
   default     = "https://github.com/awsitcloudpro"
 }
+
 variable "gitops_workload_repo" {
   description = "Git repository contains for workload"
   type        = string
   default     = "terraform-aws-eks-blueprints"
 }
+
 variable "gitops_workload_revision" {
   description = "Git repository revision/branch/ref for workload"
   type        = string
   default     = "example-windows"
 }
+
 variable "gitops_workload_basepath" {
   description = "Git repository base path for workload"
   type        = string
   default     = "patterns/windows/"
 }
+
 variable "gitops_workload_path" {
   description = "Git repository path for workload"
   type        = string
@@ -93,6 +109,23 @@ variable "enable_gitops_auto_workloads" {
   description = "Automatically deploy addons"
   type        = bool
   default     = false
+}
+
+variable "enable_ingress" {
+  description = "Enable ingress"
+  type        = bool
+  default     = true
+}
+
+variable "domain_root" {
+  description = "Root domain name. All ingress hostnames will be prefixed to this."
+  type        = string
+}
+
+variable "ingress_subdomains" {
+  description = "List of subdomains provisioned as ingresses"
+  type        = list(string)
+  default     = ["keycloak"]
 }
 
 variable "key_deletion_window_in_days" {

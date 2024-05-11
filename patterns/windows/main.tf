@@ -15,6 +15,10 @@ module "gitops_bridge_bootstrap" {
     }]
   }
   apps = local.argocd_apps
+
+  depends_on = [
+    module.eks_blueprints_addons,
+  ]
 }
 
 ################################################################################
@@ -55,7 +59,7 @@ module "eks_blueprints_addons" {
 #tfsec:ignore:aws-eks-enable-control-plane-logging
 module "eks" {
   source  = "terraform-aws-modules/eks/aws"
-  version = "~> 19"
+  version = "~> 20.0"
 
   cluster_name                   = local.name
   cluster_version                = local.cluster_version
@@ -72,19 +76,16 @@ module "eks" {
   cloudwatch_log_group_retention_in_days = var.log_retention_in_days
   cloudwatch_log_group_tags              = local.tags
 
-  # Ensure eks:kube-proxy-windows is added to the aws-auth ConfigMap
-  manage_aws_auth_configmap = true
-  # Add additional Admin role(s). 
-  # By default, only the role that executes terraform apply command will have admin access.
-  aws_auth_roles = [
-    {
-      rolearn  = data.aws_iam_role.admin.arn
-      username = "user:{{SessionName}}"
-      groups = [
-        "system:masters",
-      ]
-    }
-  ]
+  # Add the current caller identity as an administrator
+  enable_cluster_creator_admin_permissions = true
+
+  # Cluster access entries
+  # access_entries = {
+  #   admin = {
+  #     kubernetes_groups = ["administrators"]
+  #     principal_arn     = data.aws_iam_role.admin.arn
+  #   }
+  # }
 
   eks_managed_node_group_defaults = {
     iam_role_additional_policies = {
@@ -144,6 +145,10 @@ module "eks" {
     }
   }
   tags = local.tags
+
+  depends_on = [
+    module.vpc_endpoints,
+  ]
 }
 
 ################################################################################
@@ -151,7 +156,7 @@ module "eks" {
 ################################################################################
 module "vpc" {
   source  = "terraform-aws-modules/vpc/aws"
-  version = "~> 5.7"
+  version = "~> 5.8"
 
   name = local.name
   cidr = local.vpc_cidr

@@ -4,7 +4,7 @@ data "aws_availability_zones" "available" {}
 
 # Admin role that is allowed to manage AWS resources
 data "aws_iam_role" "admin" {
-  name = "Admin"
+  name = var.admin_role_name
 }
 
 data "aws_ami" "windows2022_core_eks_optimized" {

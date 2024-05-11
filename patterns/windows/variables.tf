@@ -19,7 +19,13 @@ variable "environment" {
 variable "kubernetes_version" {
   description = "Kubernetes version"
   type        = string
-  default     = "1.28"
+  default     = "1.29"
+}
+
+variable "admin_role_name" {
+  description = "Admin role name - this role will be granted cluster administrator permissions"
+  type        = string
+  default     = "Admin"
 }
 
 variable "observability_namespace" {
